@@ -1,36 +1,4 @@
 #!/usr/bin/env python3
-"""
-MLX experiments matched to the Lean proofs.
-
-This file is deliberately small and deterministic.  It does not train
-a large model.  Instead, it uses MLX array operations to instantiate
-the exact finite objects from the Lean proof:
-
-Lean theorem -> MLX check
-
-1. postprocess_successCount_eq / student_attack_lifts_to_transcript
-   deterministic_student_success == transcript_simulator_success
-
-2. conditional_student_attack_lifts_to_transcript
-   conditioned deterministic gaps are zero for every group
-
-3. candidateBest_postprocess_eq_lifted
-   candidate-best success for transcript-only students equals
-   candidate-best success for their lifted transcript simulators
-
-4. deterministic_dpi_exact / infoGain_postprocess_exact
-   finite code-cost after post-processing equals pulled-back code-cost
-
-5. fanoStyle_valid_student_to_transcript
-   finite recovery certificate validity transfers when post-processing holds
-
-6. monteCarlo_transcript_pass_implies_student_pass
-   transcript Monte Carlo pass implies deterministic student pass
-
-7. Assumption-bug experiment
-   route_metadata_student uses route_id omitted from Transcript,
-   so it is NOT train : Transcript -> Student and can have a large gap.
-"""
 from __future__ import annotations
 
 import csv
@@ -41,14 +9,7 @@ from typing import Dict, List, Tuple
 import mlx.core as mx
 import numpy as np
 
-CAPABILITIES = [
-    "reasoning",
-    "coding",
-    "tool_use",
-    "computer_use",
-    "policy_edge",
-    "domain_expert",
-]
+CAPABILITIES = ["reasoning", "coding", "tool_use", "computer_use", "policy_edge", "domain_expert"]
 GROUPS = ["normal", "proxy_cluster", "suspicious_campaign", "enterprise_eval"]
 QUERY_FAMILIES = ["simple_qa", "code_generation", "tool_planning", "multi_step", "policy_edge", "domain"]
 
@@ -123,10 +84,8 @@ def route_features(row: Dict[str, object]) -> List[float]:
 def make_matrix(rows: List[Dict[str, object]], mode: str) -> Tuple[mx.array, mx.array]:
     xs = []
     ys = []
-
     for row in rows:
         x = transcript_features(row)
-
         if mode == "transcript":
             pass
         elif mode == "route":
@@ -138,35 +97,31 @@ def make_matrix(rows: List[Dict[str, object]], mode: str) -> Tuple[mx.array, mx.
                 x += [0.0] * len(ROUTES)
         else:
             raise ValueError(mode)
-
         xs.append(x)
         ys.append(int(row["capability_id"]))
-
     return mx.array(np.array(xs, dtype=np.float32)), mx.array(np.array(ys, dtype=np.int32))
 
 def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
-    # Feature layout: query one-hot (6), signature one-hot (3), difficulty one-hot (3).
     q = x[:, 0:6]
     sig = x[:, 6:9]
 
-    # Deterministic coarse transcript model: it cannot distinguish all agentic routes.
     Wq = mx.array(
         [
-            [2.0, 0.2, 0.2, 0.2, 0.0, 0.0],  # simple_qa
-            [0.0, 2.0, 0.4, 0.4, 0.0, 0.0],  # code_generation
-            [0.0, 0.4, 2.0, 0.4, 0.0, 0.0],  # tool_planning
-            [1.4, 0.4, 0.4, 0.4, 0.0, 0.0],  # multi_step
-            [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],  # policy_edge
-            [0.0, 0.0, 0.0, 0.0, 0.0, 2.0],  # domain
+            [2.0, 0.2, 0.2, 0.2, 0.0, 0.0],
+            [0.0, 2.0, 0.4, 0.4, 0.0, 0.0],
+            [0.0, 0.4, 2.0, 0.4, 0.0, 0.0],
+            [1.4, 0.4, 0.4, 0.4, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 2.0],
         ],
         dtype=mx.float32,
     )
 
     Ws = mx.array(
         [
-            [0.0, 1.0, 1.0, 1.0, 0.0, 0.0],  # agentic
-            [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],  # safety
-            [1.5, 0.0, 0.0, 0.0, 0.0, 1.0],  # language_reasoning
+            [0.0, 1.0, 1.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+            [1.5, 0.0, 0.0, 0.0, 0.0, 1.0],
         ],
         dtype=mx.float32,
     )
@@ -174,23 +129,17 @@ def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
     logits = q @ Wq + sig @ Ws
 
     if variant == 1:
-        # A second candidate with a different but still transcript-only bias.
-        bias = mx.array([0.3, 0.0, 0.1, 0.1, 0.0, 0.2], dtype=mx.float32)
-        logits = logits + bias
+        logits = logits + mx.array([0.3, 0.0, 0.1, 0.1, 0.0, 0.2], dtype=mx.float32)
     elif variant == 2:
-        bias = mx.array([0.0, 0.2, 0.0, 0.3, 0.0, 0.1], dtype=mx.float32)
-        logits = logits + bias
+        logits = logits + mx.array([0.0, 0.2, 0.0, 0.3, 0.0, 0.1], dtype=mx.float32)
 
     return logits
 
 def route_logits(x: mx.array) -> mx.array:
-    # Feature layout: transcript features (12) + route one-hot (6).
     r = x[:, 12:18]
-    route_to_cap = mx.eye(len(CAPABILITIES), dtype=mx.float32) * 10.0
-    return r @ route_to_cap
+    return r @ (mx.eye(len(CAPABILITIES), dtype=mx.float32) * 10.0)
 
 def subgroup_route_logits(x: mx.array) -> mx.array:
-    # If route features are zeros, fall back to transcript model.
     base = transcript_logits(x[:, 0:12])
     route = route_logits(x)
     route_present = mx.sum(x[:, 12:18], axis=1, keepdims=True)
@@ -207,7 +156,6 @@ def success(pred: mx.array, y: mx.array) -> int:
     return int(c.item())
 
 def code_cost(pred: mx.array) -> int:
-    # Arbitrary finite code lengths for output labels.
     code = mx.array([1, 2, 3, 4, 5, 6], dtype=mx.int32)
     val = mx.sum(code[pred])
     mx.eval(val)
@@ -232,17 +180,15 @@ def main() -> None:
     route_success = success(pred_route_student, y)
     subgroup_success = success(pred_subgroup_student, y)
 
-    # Candidate class: three transcript-only candidates.
     candidate_preds = [predict(transcript_logits(X_t, variant=i)) for i in range(3)]
     candidate_successes = [success(p, y) for p in candidate_preds]
     candidate_best_student = max(candidate_successes)
     candidate_best_lifted_transcript = max(candidate_successes)
 
-    # Conditional groups: deterministic post-processing gap is zero for every group.
-    conditional = {}
     groups_np = np.array([GROUP[str(r["group"])] for r in rows], dtype=np.int32)
     groups_mx = mx.array(groups_np)
 
+    conditional = {}
     for group_name, group_id in GROUP.items():
         mask = groups_mx == group_id
         total_g = int(mx.sum(mask).item())
@@ -259,16 +205,13 @@ def main() -> None:
             "transcript_rate": round(sim_g / total_g, 6),
         }
 
-    # Finite code-cost/DPI check.
     cost_student = code_cost(pred_transcript_student)
     cost_pullback = code_cost(pred_transcript_simulator)
 
-    # Fano-style certificate transfer.
     allowed_errors = N - transcript_success
     fano_student_valid = fano_valid(N, transcript_success, allowed_errors)
     fano_transcript_valid = fano_valid(N, simulator_success, allowed_errors)
 
-    # Monte Carlo certificate.
     budget = transcript_success + int(0.02 * N)
     monte_carlo_transcript_pass = simulator_success <= budget
     monte_carlo_student_pass = transcript_success <= budget
@@ -325,19 +268,17 @@ def main() -> None:
 
     ## Lean theorem alignment
 
-    - `postprocess_successCount_eq`: deterministic gap = {summary['deterministic_student_minus_transcript_simulator_success']}
-    - `candidateBest_postprocess_eq_lifted`: candidate-best gap = {summary['candidate_best_gap']}
-    - `deterministic_dpi_exact`: code-cost gap = {summary['code_cost_gap']}
-    - `fanoStyle_valid_student_to_transcript`: student valid = {summary['fano_student_valid']}, transcript valid = {summary['fano_transcript_valid']}
-    - `monteCarlo_transcript_pass_implies_student_pass`: transcript pass = {summary['monte_carlo_transcript_pass']}, student pass = {summary['monte_carlo_student_pass']}
+    - postprocess_successCount_eq: deterministic gap = {summary['deterministic_student_minus_transcript_simulator_success']}
+    - candidateBest_postprocess_eq_lifted: candidate-best gap = {summary['candidate_best_gap']}
+    - deterministic_dpi_exact: code-cost gap = {summary['code_cost_gap']}
+    - fanoStyle_valid_student_to_transcript: student valid = {summary['fano_student_valid']}, transcript valid = {summary['fano_transcript_valid']}
+    - monteCarlo_transcript_pass_implies_student_pass: transcript pass = {summary['monte_carlo_transcript_pass']}, student pass = {summary['monte_carlo_student_pass']}
 
     ## Assumption-bug result
 
-    Route-metadata success exceeds transcript-simulator success by:
+    Route-metadata success exceeds transcript-simulator success by {summary['route_metadata_student_minus_transcript_simulator_success']}.
 
-    `{summary['route_metadata_student_minus_transcript_simulator_success']}`
-
-    This is not a contradiction of the Lean theorem.  It means the real training function is not `Transcript -> Student`; it is `Transcript -> RouteMetadata -> Student`.
+    This is not a contradiction of the Lean theorem. It means the real training function is not Transcript -> Student; it is Transcript -> RouteMetadata -> Student.
     """
     (out / "REPORT.md").write_text(report, encoding="utf-8")
 

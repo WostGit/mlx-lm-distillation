@@ -3,13 +3,11 @@ import PACXAI.Recovery
 
 namespace PACXAI
 
-/-- Conditioning is finite filtering of the audit population. -/
 def conditionPopulation {Secret : Type}
     (secrets : Population Secret)
     (condition : Secret -> Bool) : Population Secret :=
   secrets.filter condition
 
-/-- Conditional observed success count: evaluate only on the filtered population. -/
 def conditionalObservedSuccessCount {Secret Obs Guess : Type}
     (secrets : Population Secret)
     (condition : Secret -> Bool)
@@ -18,7 +16,6 @@ def conditionalObservedSuccessCount {Secret Obs Guess : Type}
     (attack : CandidateAttack Obs Guess) : Nat :=
   observedSuccessCount (conditionPopulation secrets condition) criterion obs attack
 
-/-- Post-processing preservation also holds after conditioning on a subgroup/campaign. -/
 theorem conditional_postprocess_success_eq {Secret Raw Out Guess : Type}
     (secrets : Population Secret)
     (condition : Secret -> Bool)
@@ -30,7 +27,6 @@ theorem conditional_postprocess_success_eq {Secret Raw Out Guess : Type}
     conditionalObservedSuccessCount secrets condition criterion obs (liftedAttack f attack) := by
   rfl
 
-/-- Candidate-best equality also holds after finite conditioning. -/
 theorem conditional_candidateBest_postprocess_eq_lifted {Secret Raw Out Guess : Type}
     (secrets : Population Secret)
     (condition : Secret -> Bool)

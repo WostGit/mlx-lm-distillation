@@ -5,7 +5,6 @@ import PACXAI.Conditioning
 namespace PACXAI
 namespace PAC
 
-/-- A finite Monte Carlo audit certificate. -/
 structure MonteCarloCertificate where
   samples : Nat
   successes : Nat
@@ -14,11 +13,9 @@ structure MonteCarloCertificate where
   confidenceDenominator : Nat
   deriving Repr, BEq
 
-/-- The certificate passes when the observed number of successes is within the allowed finite budget. -/
 def MonteCarloCertificate.Passes (c : MonteCarloCertificate) : Prop :=
   c.successes <= c.allowedSuccesses
 
-/-- Build a Monte Carlo certificate from a finite sampled population and candidate attack. -/
 def monteCarloFromAttack {Secret Obs Guess : Type}
     (samples : Population Secret)
     (criterion : Criterion Secret Guess)
@@ -31,7 +28,6 @@ def monteCarloFromAttack {Secret Obs Guess : Type}
     confidenceNumerator := confidenceNumerator,
     confidenceDenominator := confidenceDenominator }
 
-/-- Deterministic post-processing preserves the Monte Carlo success count exactly. -/
 theorem monteCarlo_postprocess_success_eq {Secret Raw Out Guess : Type}
     (samples : Population Secret)
     (criterion : Criterion Secret Guess)
@@ -43,7 +39,6 @@ theorem monteCarlo_postprocess_success_eq {Secret Raw Out Guess : Type}
     (monteCarloFromAttack samples criterion raw (liftedAttack f attack) allowedSuccesses confidenceNumerator confidenceDenominator).successes := by
   rfl
 
-/-- If the transcript-level Monte Carlo simulator passes, so does the deterministic student audit. -/
 theorem monteCarlo_transcript_pass_implies_student_pass {Secret Raw Out Guess : Type}
     (samples : Population Secret)
     (criterion : Criterion Secret Guess)
@@ -55,7 +50,6 @@ theorem monteCarlo_transcript_pass_implies_student_pass {Secret Raw Out Guess : 
     (monteCarloFromAttack samples criterion (postprocess raw f) attack allowedSuccesses confidenceNumerator confidenceDenominator).Passes := by
   exact h
 
-/-- Candidate-class Monte Carlo audit: the observed successes are the candidate-best successes. -/
 def monteCarloFromCandidateClass {Secret Obs Guess : Type}
     (samples : Population Secret)
     (criterion : Criterion Secret Guess)
@@ -68,7 +62,6 @@ def monteCarloFromCandidateClass {Secret Obs Guess : Type}
     confidenceNumerator := confidenceNumerator,
     confidenceDenominator := confidenceDenominator }
 
-/-- Candidate-class Monte Carlo certificates are preserved by lifting student attacks to transcript attacks. -/
 theorem monteCarlo_candidateClass_postprocess_eq {Secret Raw Out Guess : Type}
     (samples : Population Secret)
     (criterion : Criterion Secret Guess)
