@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PACXAI Lean + MLX Artifact Report</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 40px; line-height: 1.5; color: #111827; }
+    h1, h2 { line-height: 1.2; }
+    .card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px; margin: 18px 0; background: #fafafa; }
+    .pass { color: #047857; font-weight: 700; }
+    .fail { color: #b91c1c; font-weight: 700; }
+    table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 14px; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px 10px; vertical-align: top; }
+    th { background: #f3f4f6; text-align: left; }
+    img { max-width: 100%; border: 1px solid #e5e7eb; border-radius: 12px; margin: 12px 0; }
+    code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>PACXAI Lean + MLX artifact report</h1>
+  <div class="card">
+    <h2>Executive verdict</h2>
+    <p><strong>Lean build:</strong> <span class="pass">PASS</span></p>
+    <p><strong>Forbidden-token audit:</strong> <span class="pass">PASS</span></p>
+    <p><strong>MLX proof-matched experiment:</strong> <span class="pass">PASS</span></p>
+    <p><strong>Route-metadata false pass:</strong> <span class="pass">True</span></p>
+  </div>
+
+  <h2>Security claim</h2>
+  <p>If a student artifact is a deterministic function of the audited transcript, every finite recovery attack on the student has an equivalent transcript-level simulator with exactly the same empirical success.</p>
+  <p>The MLX experiment demonstrates the failure mode: if the real pipeline uses omitted route metadata, the theorem does not apply and the transcript-only audit can falsely pass.</p>
+
+  <h2>Audit boundary diagram</h2>
+  <img src="audit_boundary_diagram.svg" alt="Audit boundary diagram">
+
+  <h2>Core result graph</h2>
+  <img src="success_counts.svg" alt="Recovery successes by scenario">
+
+  <h2>Subgroup leakage graph</h2>
+  <img src="subgroup_rates.svg" alt="Conditioned subgroup leakage rates">
+
+  <h2>Theorem-to-experiment alignment</h2>
+  <table>
+<thead><tr>
+<th>Lean theorem or obligation</th>
+<th>Experimental meaning</th>
+<th>Metric</th>
+<th>Observed</th>
+<th>Expected</th>
+<th>Verdict</th>
+</tr></thead><tbody>
+<tr>
+<td>postprocess_successCount_eq</td>
+<td>Deterministic student attack equals transcript simulator.</td>
+<td>deterministic_student_minus_transcript_simulator_success</td>
+<td>0</td>
+<td>0</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>conditional_student_attack_lifts_to_transcript</td>
+<td>Post-processing equality holds for every conditioned subgroup.</td>
+<td>all conditional deterministic_gap values</td>
+<td>{&quot;enterprise_eval&quot;: 0, &quot;normal&quot;: 0, &quot;proxy_cluster&quot;: 0, &quot;suspicious_campaign&quot;: 0}</td>
+<td>all 0</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>candidateBest_postprocess_eq_lifted</td>
+<td>Best finite candidate attack is unchanged after lifting.</td>
+<td>candidate_best_gap</td>
+<td>0</td>
+<td>0</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>InfoTheory.deterministic_dpi_exact</td>
+<td>Finite code-cost DPI equality holds.</td>
+<td>code_cost_gap</td>
+<td>0</td>
+<td>0</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>InfoTheory.fanoStyle_valid_student_to_transcript</td>
+<td>Fano-style certificate transfers from student to transcript.</td>
+<td>fano validity</td>
+<td>student=True; transcript=True</td>
+<td>both true</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>PAC.monteCarlo_transcript_pass_implies_student_pass</td>
+<td>Monte Carlo pass transfers from transcript simulator to deterministic student.</td>
+<td>Monte Carlo pass</td>
+<td>student=True; transcript=True</td>
+<td>both true</td>
+<td class="pass">PASS</td>
+</tr>
+<tr>
+<td>outside theorem precondition</td>
+<td>Route metadata is omitted from transcript, so theorem does not apply.</td>
+<td>route_metadata_false_pass_under_transcript_audit</td>
+<td>True</td>
+<td>true</td>
+<td class="pass">PASS</td>
+</tr>
+</tbody></table>
+
+  <h2>Core metrics</h2>
+  <table>
+<thead><tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Interpretation</th>
+</tr></thead><tbody>
+<tr>
+<td>Population size</td>
+<td>10000</td>
+<td>Finite audit population.</td>
+</tr>
+<tr>
+<td>Transcript successes</td>
+<td>2500</td>
+<td>Recovery using audited transcript boundary.</td>
+</tr>
+<tr>
+<td>Transcript simulator successes</td>
+<td>2500</td>
+<td>Simulator from the same boundary.</td>
+</tr>
+<tr>
+<td>Route metadata successes</td>
+<td>10000</td>
+<td>Recovery using omitted route metadata.</td>
+</tr>
+<tr>
+<td>Subgroup auxiliary successes</td>
+<td>6667</td>
+<td>Recovery when auxiliary metadata is subgroup-concentrated.</td>
+</tr>
+<tr>
+<td>Route-metadata lift</td>
+<td>7500</td>
+<td>Additional successes caused by omitted route metadata.</td>
+</tr>
+<tr>
+<td>Monte Carlo budget</td>
+<td>2700</td>
+<td>Allowed successes under transcript-only audit.</td>
+</tr>
+</tbody></table>
+
+  <h2>Subgroup rates</h2>
+  <table>
+<thead><tr>
+<th>Group</th>
+<th>Total</th>
+<th>Transcript rate</th>
+<th>Subgroup-aux rate</th>
+<th>Deterministic gap</th>
+<th>Interpretation</th>
+</tr></thead><tbody>
+<tr>
+<td>normal</td>
+<td>2500</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0</td>
+<td>post-processing equality holds</td>
+</tr>
+<tr>
+<td>proxy_cluster</td>
+<td>2500</td>
+<td>0.3332</td>
+<td>1.0</td>
+<td>0</td>
+<td>auxiliary route metadata raises recovery</td>
+</tr>
+<tr>
+<td>suspicious_campaign</td>
+<td>2500</td>
+<td>0.0</td>
+<td>1.0</td>
+<td>0</td>
+<td>auxiliary route metadata raises recovery</td>
+</tr>
+<tr>
+<td>enterprise_eval</td>
+<td>2500</td>
+<td>0.6668</td>
+<td>0.6668</td>
+<td>0</td>
+<td>post-processing equality holds</td>
+</tr>
+</tbody></table>
+
+  <h2>Axiom-audit interpretation</h2>
+  <p>The core post-processing, distillation, finite DPI, Fano-style, and Monte Carlo transfer theorems are reported as not depending on project-specific axioms. Some candidate-class list/simp theorems mention Lean's standard <code>propext</code> and <code>Quot.sound</code>; these are kernel-level logical principles used by Lean's equality/simplification infrastructure, not hidden privacy, independence, Gaussian, Shannon, or rate-distortion assumptions.</p>
+
+  <h2>Scope limitation</h2>
+  <p>This artifact mechanizes a finite recovery/privacy audit framework. It does not claim full Shannon entropy, KL divergence with real logarithms, Gaussian maximum entropy, or Gaussian rate-distortion formalization.</p>
+</body>
+</html>

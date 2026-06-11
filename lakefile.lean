@@ -1,8 +1,8 @@
 import Lake
 open Lake DSL
 
-package «pacxai_ultra_verbose» where
-  -- Self-contained mathlib-free finite recovery/privacy artifact.
+package «pacxai_10_10_artifact» where
+  -- Self-contained, mathlib-free finite recovery/privacy artifact.
 
 @[default_target]
 lean_lib PACXAI where

@@ -1,0 +1,8 @@
+Quantity,Value,Interpretation
+Population size,10000,Finite audit population.
+Transcript successes,2500,Recovery using audited transcript boundary.
+Transcript simulator successes,2500,Simulator from the same boundary.
+Route metadata successes,10000,Recovery using omitted route metadata.
+Subgroup auxiliary successes,6667,Recovery when auxiliary metadata is subgroup-concentrated.
+Route-metadata lift,7500,Additional successes caused by omitted route metadata.
+Monte Carlo budget,2700,Allowed successes under transcript-only audit.

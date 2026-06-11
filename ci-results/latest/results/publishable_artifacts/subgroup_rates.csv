@@ -1,0 +1,5 @@
+Group,Total,Transcript rate,Subgroup-aux rate,Deterministic gap,Interpretation
+normal,2500,0.0,0.0,0,post-processing equality holds
+proxy_cluster,2500,0.3332,1.0,0,auxiliary route metadata raises recovery
+suspicious_campaign,2500,0.0,1.0,0,auxiliary route metadata raises recovery
+enterprise_eval,2500,0.6668,0.6668,0,post-processing equality holds

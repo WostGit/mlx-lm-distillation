@@ -1,14 +1,14 @@
-info: pacxai_ultra_verbose: no previous manifest, creating one from scratch
+info: pacxai_10_10_artifact: no previous manifest, creating one from scratch
 info: toolchain not updated; already up-to-date
-✔ [2/13] Built PACXAI.Core (506ms)
-✔ [3/13] Built PACXAI.Transcript (410ms)
-✔ [4/13] Built PACXAI.Leakage.FiniteCapacity (409ms)
-✔ [5/13] Built PACXAI.InfoTheory.FiniteDistribution (409ms)
-✔ [6/13] Built PACXAI.Recovery (340ms)
-✔ [7/13] Built PACXAI.InfoTheory.DPI (344ms)
-✔ [8/13] Built PACXAI.Conditioning (307ms)
-✔ [9/13] Built PACXAI.InfoTheory.FanoStyle (360ms)
-✔ [10/13] Built PACXAI.Distillation (432ms)
-✔ [11/13] Built PACXAI.PAC.MonteCarlo (425ms)
-✔ [12/13] Built PACXAI (316ms)
+✔ [2/13] Built PACXAI.Core (608ms)
+✔ [3/13] Built PACXAI.InfoTheory.FiniteDistribution (578ms)
+✔ [4/13] Built PACXAI.Transcript (659ms)
+✔ [5/13] Built PACXAI.Recovery (666ms)
+✔ [6/13] Built PACXAI.Conditioning (402ms)
+✔ [7/13] Built PACXAI.Leakage.FiniteCapacity (406ms)
+✔ [8/13] Built PACXAI.InfoTheory.DPI (423ms)
+✔ [9/13] Built PACXAI.Distillation (414ms)
+✔ [10/13] Built PACXAI.InfoTheory.FanoStyle (374ms)
+✔ [11/13] Built PACXAI.PAC.MonteCarlo (438ms)
+✔ [12/13] Built PACXAI (264ms)
 Build completed successfully (13 jobs).

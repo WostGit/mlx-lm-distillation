@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="490.0" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700">Recovery successes by audit scenario</text>
+<text x="24" y="240.0" transform="rotate(-90 24 240.0)" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">Recovery successes</text>
+<line x1="90" y1="400" x2="940" y2="400" stroke="#222" stroke-width="1"/>
+<line x1="90" y1="80" x2="90" y2="400" stroke="#222" stroke-width="1"/>
+<line x1="85" y1="400.00" x2="940" y2="400.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="404.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">0</text>
+<line x1="85" y1="336.00" x2="940" y2="336.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="340.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">2000</text>
+<line x1="85" y1="272.00" x2="940" y2="272.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="276.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">4000</text>
+<line x1="85" y1="208.00" x2="940" y2="208.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="212.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">6000</text>
+<line x1="85" y1="144.00" x2="940" y2="144.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="148.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">8000</text>
+<line x1="85" y1="80.00" x2="940" y2="80.00" stroke="#e6e6e6" stroke-width="1"/>
+<text x="80" y="84.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">10000</text>
+<rect x="90.00" y="320.00" width="191.50" height="80.00" rx="8" fill="#4f6bed"/>
+<text x="185.75" y="312.00" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700">2500</text>
+<text x="185.75" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Transcript student</text>
+<rect x="309.50" y="320.00" width="191.50" height="80.00" rx="8" fill="#4f6bed"/>
+<text x="405.25" y="312.00" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700">2500</text>
+<text x="405.25" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Transcript simulator</text>
+<rect x="529.00" y="186.66" width="191.50" height="213.34" rx="8" fill="#4f6bed"/>
+<text x="624.75" y="178.66" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700">6667</text>
+<text x="624.75" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Subgroup aux</text>
+<rect x="748.50" y="80.00" width="191.50" height="320.00" rx="8" fill="#4f6bed"/>
+<text x="844.25" y="72.00" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700">10000</text>
+<text x="844.25" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Route metadata</text>
+</svg>

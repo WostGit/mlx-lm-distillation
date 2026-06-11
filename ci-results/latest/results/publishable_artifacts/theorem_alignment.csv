@@ -1,0 +1,8 @@
+Lean theorem or obligation,Experimental meaning,Metric,Observed,Expected,Verdict
+postprocess_successCount_eq,Deterministic student attack equals transcript simulator.,deterministic_student_minus_transcript_simulator_success,0,0,PASS
+conditional_student_attack_lifts_to_transcript,Post-processing equality holds for every conditioned subgroup.,all conditional deterministic_gap values,"{""enterprise_eval"": 0, ""normal"": 0, ""proxy_cluster"": 0, ""suspicious_campaign"": 0}",all 0,PASS
+candidateBest_postprocess_eq_lifted,Best finite candidate attack is unchanged after lifting.,candidate_best_gap,0,0,PASS
+InfoTheory.deterministic_dpi_exact,Finite code-cost DPI equality holds.,code_cost_gap,0,0,PASS
+InfoTheory.fanoStyle_valid_student_to_transcript,Fano-style certificate transfers from student to transcript.,fano validity,student=True; transcript=True,both true,PASS
+PAC.monteCarlo_transcript_pass_implies_student_pass,Monte Carlo pass transfers from transcript simulator to deterministic student.,Monte Carlo pass,student=True; transcript=True,both true,PASS
+outside theorem precondition,"Route metadata is omitted from transcript, so theorem does not apply.",route_metadata_false_pass_under_transcript_audit,True,true,PASS

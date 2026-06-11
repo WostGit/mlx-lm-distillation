@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="560" viewBox="0 0 1040 560">
+<rect width="100%" height="100%" fill="#fff"/>
+<text x="520.0" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700">Conditioned subgroup leakage rates</text>
+<line x1="90" y1="440" x2="1000" y2="440" stroke="#222"/>
+<line x1="90" y1="80" x2="90" y2="440" stroke="#222"/>
+<line x1="85" y1="440.00" x2="1000" y2="440.00" stroke="#e6e6e6"/>
+<text x="80" y="444.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">0%</text>
+<line x1="85" y1="368.00" x2="1000" y2="368.00" stroke="#e6e6e6"/>
+<text x="80" y="372.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">20%</text>
+<line x1="85" y1="296.00" x2="1000" y2="296.00" stroke="#e6e6e6"/>
+<text x="80" y="300.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">40%</text>
+<line x1="85" y1="224.00" x2="1000" y2="224.00" stroke="#e6e6e6"/>
+<text x="80" y="228.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">60%</text>
+<line x1="85" y1="152.00" x2="1000" y2="152.00" stroke="#e6e6e6"/>
+<text x="80" y="156.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">80%</text>
+<line x1="85" y1="80.00" x2="1000" y2="80.00" stroke="#e6e6e6"/>
+<text x="80" y="84.00" text-anchor="end" font-family="Arial, sans-serif" font-size="12">100%</text>
+<rect x="130.95" y="440.00" width="63.70" height="0.00" rx="5" fill="#6b7280"/>
+<rect x="202.65" y="440.00" width="63.70" height="0.00" rx="5" fill="#4f6bed"/>
+<text x="194.65" y="468" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">normal</text>
+<rect x="358.45" y="320.05" width="63.70" height="119.95" rx="5" fill="#6b7280"/>
+<rect x="430.15" y="80.00" width="63.70" height="360.00" rx="5" fill="#4f6bed"/>
+<text x="422.15" y="468" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">proxy_cluster</text>
+<rect x="585.95" y="440.00" width="63.70" height="0.00" rx="5" fill="#6b7280"/>
+<rect x="657.65" y="80.00" width="63.70" height="360.00" rx="5" fill="#4f6bed"/>
+<text x="649.65" y="468" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">suspicious_campaign</text>
+<rect x="813.45" y="199.95" width="63.70" height="240.05" rx="5" fill="#6b7280"/>
+<rect x="885.15" y="199.95" width="63.70" height="240.05" rx="5" fill="#4f6bed"/>
+<text x="877.15" y="468" text-anchor="middle" font-family="Arial, sans-serif" font-size="11">enterprise_eval</text>
+<rect x="730" y="58" width="14" height="14" fill="#6b7280"/><text x="750" y="70" font-family="Arial, sans-serif" font-size="13">Transcript rate</text>
+<rect x="870" y="58" width="14" height="14" fill="#4f6bed"/><text x="890" y="70" font-family="Arial, sans-serif" font-size="13">Subgroup-aux rate</text>
+</svg>

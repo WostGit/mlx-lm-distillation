@@ -104,7 +104,6 @@ def make_matrix(rows: List[Dict[str, object]], mode: str) -> Tuple[mx.array, mx.
 def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
     q = x[:, 0:6]
     sig = x[:, 6:9]
-
     Wq = mx.array(
         [
             [2.0, 0.2, 0.2, 0.2, 0.0, 0.0],
@@ -116,7 +115,6 @@ def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
         ],
         dtype=mx.float32,
     )
-
     Ws = mx.array(
         [
             [0.0, 1.0, 1.0, 1.0, 0.0, 0.0],
@@ -125,14 +123,11 @@ def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
         ],
         dtype=mx.float32,
     )
-
     logits = q @ Wq + sig @ Ws
-
     if variant == 1:
         logits = logits + mx.array([0.3, 0.0, 0.1, 0.1, 0.0, 0.2], dtype=mx.float32)
     elif variant == 2:
         logits = logits + mx.array([0.0, 0.2, 0.0, 0.3, 0.0, 0.1], dtype=mx.float32)
-
     return logits
 
 def route_logits(x: mx.array) -> mx.array:
@@ -187,7 +182,6 @@ def main() -> None:
 
     groups_np = np.array([GROUP[str(r["group"])] for r in rows], dtype=np.int32)
     groups_mx = mx.array(groups_np)
-
     conditional = {}
     for group_name, group_id in GROUP.items():
         mask = groups_mx == group_id
@@ -243,10 +237,9 @@ def main() -> None:
 
     out = Path("results/mlx_proof_matched")
     out.mkdir(parents=True, exist_ok=True)
-
     (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
-    with (out / "conditional_groups.csv").open("w", newline="") as f:
+    with (out / "conditional_groups.csv").open("w", newline="", encoding="utf-8") as f:
         fieldnames = [
             "group",
             "total",
@@ -263,24 +256,6 @@ def main() -> None:
             row = {"group": g}
             row.update(rec)
             writer.writerow(row)
-
-    report = f"""# MLX Proof-Matched Experiments
-
-    ## Lean theorem alignment
-
-    - postprocess_successCount_eq: deterministic gap = {summary['deterministic_student_minus_transcript_simulator_success']}
-    - candidateBest_postprocess_eq_lifted: candidate-best gap = {summary['candidate_best_gap']}
-    - deterministic_dpi_exact: code-cost gap = {summary['code_cost_gap']}
-    - fanoStyle_valid_student_to_transcript: student valid = {summary['fano_student_valid']}, transcript valid = {summary['fano_transcript_valid']}
-    - monteCarlo_transcript_pass_implies_student_pass: transcript pass = {summary['monte_carlo_transcript_pass']}, student pass = {summary['monte_carlo_student_pass']}
-
-    ## Assumption-bug result
-
-    Route-metadata success exceeds transcript-simulator success by {summary['route_metadata_student_minus_transcript_simulator_success']}.
-
-    This is not a contradiction of the Lean theorem. It means the real training function is not Transcript -> Student; it is Transcript -> RouteMetadata -> Student.
-    """
-    (out / "REPORT.md").write_text(report, encoding="utf-8")
 
     print(json.dumps(summary, indent=2))
 
