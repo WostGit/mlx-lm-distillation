@@ -1,0 +1,81 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading MLX-LM teacher/base model: mlx-community/Qwen2.5-0.5B-Instruct-4bit
+teacher_generation 1/66 reasoning reasoning_route
+teacher_generation 2/66 coding code_route
+teacher_generation 3/66 tool_use tool_route
+teacher_generation 4/66 computer_use computer_route
+teacher_generation 5/66 policy_edge safety_route
+teacher_generation 6/66 domain_expert expert_route
+teacher_generation 7/66 reasoning reasoning_route
+teacher_generation 8/66 coding code_route
+teacher_generation 9/66 tool_use tool_route
+teacher_generation 10/66 computer_use computer_route
+teacher_generation 11/66 policy_edge safety_route
+teacher_generation 12/66 domain_expert expert_route
+teacher_generation 13/66 reasoning reasoning_route
+teacher_generation 14/66 coding code_route
+teacher_generation 15/66 tool_use tool_route
+teacher_generation 16/66 computer_use computer_route
+teacher_generation 17/66 policy_edge safety_route
+teacher_generation 18/66 domain_expert expert_route
+teacher_generation 19/66 reasoning reasoning_route
+teacher_generation 20/66 coding code_route
+teacher_generation 21/66 tool_use tool_route
+teacher_generation 22/66 computer_use computer_route
+teacher_generation 23/66 policy_edge safety_route
+teacher_generation 24/66 domain_expert expert_route
+teacher_generation 25/66 reasoning reasoning_route
+teacher_generation 26/66 coding code_route
+teacher_generation 27/66 tool_use tool_route
+teacher_generation 28/66 computer_use computer_route
+teacher_generation 29/66 policy_edge safety_route
+teacher_generation 30/66 domain_expert expert_route
+teacher_generation 31/66 reasoning reasoning_route
+teacher_generation 32/66 coding code_route
+teacher_generation 33/66 tool_use tool_route
+teacher_generation 34/66 computer_use computer_route
+teacher_generation 35/66 policy_edge safety_route
+teacher_generation 36/66 domain_expert expert_route
+teacher_generation 37/66 reasoning reasoning_route
+teacher_generation 38/66 coding code_route
+teacher_generation 39/66 tool_use tool_route
+teacher_generation 40/66 computer_use computer_route
+teacher_generation 41/66 policy_edge safety_route
+teacher_generation 42/66 domain_expert expert_route
+teacher_generation 43/66 reasoning reasoning_route
+teacher_generation 44/66 coding code_route
+teacher_generation 45/66 tool_use tool_route
+teacher_generation 46/66 computer_use computer_route
+teacher_generation 47/66 policy_edge safety_route
+teacher_generation 48/66 domain_expert expert_route
+teacher_generation 49/66 reasoning reasoning_route
+teacher_generation 50/66 coding code_route
+teacher_generation 51/66 tool_use tool_route
+teacher_generation 52/66 computer_use computer_route
+teacher_generation 53/66 policy_edge safety_route
+teacher_generation 54/66 domain_expert expert_route
+teacher_generation 55/66 reasoning reasoning_route
+teacher_generation 56/66 coding code_route
+teacher_generation 57/66 tool_use tool_route
+teacher_generation 58/66 computer_use computer_route
+teacher_generation 59/66 policy_edge safety_route
+teacher_generation 60/66 domain_expert expert_route
+teacher_generation 61/66 reasoning reasoning_route
+teacher_generation 62/66 coding code_route
+teacher_generation 63/66 tool_use tool_route
+teacher_generation 64/66 computer_use computer_route
+teacher_generation 65/66 policy_edge safety_route
+teacher_generation 66/66 domain_expert expert_route
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "train_examples": 48,
+  "eval_examples": 18,
+  "capabilities": [
+    "reasoning",
+    "coding",
+    "tool_use",
+    "computer_use",
+    "policy_edge",
+    "domain_expert"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "model_id": "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
+  "transcript_only_success": 11,
+  "route_metadata_success": 12,
+  "total": 18,
+  "transcript_only_rate": 0.6111111111111112,
+  "route_metadata_rate": 0.6666666666666666,
+  "route_metadata_minus_transcript_success": 1,
+  "audit_budget_allowed_successes": 12,
+  "route_metadata_false_pass_under_transcript_audit": false,
+  "interpretation": "Both students are real MLX-LM QLoRA adapters. The route-metadata adapter was trained with route_id in the prompt; the transcript-only adapter was not. A positive gap shows the missing post-processing boundary."
+}
