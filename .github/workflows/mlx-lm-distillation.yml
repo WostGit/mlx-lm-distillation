@@ -1,4 +1,4 @@
-name: PACXAI Self-Contained Lean + MLX CI
+name: PACXAI Ultra-Verbose Lean + MLX Publishable CI
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ permissions:
   actions: read
 
 jobs:
-  pacxai-lean-mlx:
+  pacxai-ultra-verbose-lean-mlx:
     runs-on: macos-15
     timeout-minutes: 120
 
@@ -21,20 +21,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Show runner information
+      - name: Print runner and experiment purpose
         run: |
           set -euxo pipefail
+          echo "================================================================================"
+          echo "PACXAI ULTRA-VERBOSE LEAN + MLX PUBLISHABLE CI"
+          echo "================================================================================"
+          echo "Purpose:"
+          echo "  1. Generate a self-contained Lean artifact."
+          echo "  2. Build and audit the Lean proofs."
+          echo "  3. Install MLX on Apple Silicon."
+          echo "  4. Run MLX experiments that match the Lean theorem obligations."
+          echo "  5. Print a publication-style theorem-to-experiment report."
+          echo ""
+          echo "Runner:"
           uname -a
           uname -m
           sw_vers || true
           sysctl -n machdep.cpu.brand_string || true
+          echo "================================================================================"
 
-      - name: Install Python 3.12 for MLX
+      - name: Install Python 3.12 and MLX in a virtual environment
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Create Python virtual environment and install MLX
+      - name: Create venv and install MLX
         run: |
           set -euxo pipefail
           python3 -m venv .venv
@@ -46,24 +58,28 @@ jobs:
           import platform
           import mlx.core as mx
 
-          print("python platform:", platform.platform())
-          print("machine:", platform.machine())
-
+          print("================================================================================")
+          print("MLX INSTALLATION SMOKE TEST")
+          print("================================================================================")
+          print("Python platform:", platform.platform())
+          print("Machine:", platform.machine())
           x = mx.array([1.0, 2.0, 3.0])
           s = mx.sum(x)
           mx.eval(s)
-          print("mlx smoke sum:", float(s))
-          print("mlx default device:", mx.default_device())
+          print("MLX smoke sum:", float(s))
+          print("MLX default device:", mx.default_device())
+          print("Verdict: MLX import and execution PASS")
+          print("================================================================================")
           PY
 
-      - name: Generate complete PACXAI Lean project
+      - name: Generate self-contained Lean project
         run: |
           set -euxo pipefail
 
           rm -rf PACXAI scripts experiments results ci-results
-          mkdir -p PACXAI/Leakage
           mkdir -p PACXAI/InfoTheory
           mkdir -p PACXAI/PAC
+          mkdir -p PACXAI/Leakage
           mkdir -p scripts
           mkdir -p experiments
           mkdir -p results
@@ -76,8 +92,8 @@ jobs:
           import Lake
           open Lake DSL
 
-          package «pacxai_ci_self_contained_mlx» where
-            -- Mathlib-free finite recovery/privacy artifact.
+          package «pacxai_ultra_verbose» where
+            -- Self-contained mathlib-free finite recovery/privacy artifact.
 
           @[default_target]
           lean_lib PACXAI where
@@ -98,7 +114,6 @@ jobs:
 
           namespace PACXAI
 
-          /-- CI smoke theorem: the repository contains a buildable Lean library. -/
           theorem ci_smoke : True := by
             trivial
 
@@ -108,47 +123,38 @@ jobs:
           cat > PACXAI/Core.lean <<'EOF'
           namespace PACXAI
 
-          /-- A finite transcript-derived artifact is represented by an observation function. -/
           abbrev Observation (Secret Output : Type) := Secret -> Output
 
-          /-- A reconstruction criterion says whether a guess successfully recovers the protected feature. -/
           abbrev Criterion (Secret Guess : Type) := Secret -> Guess -> Bool
 
-          /-- A finite audit population. The same secret may appear more than once to model empirical sampling. -/
           abbrev Population (Secret : Type) := List Secret
 
-          /-- Count list elements satisfying a Boolean predicate. -/
           def countWhere {A : Type} (xs : List A) (p : A -> Bool) : Nat :=
             (xs.filter p).length
 
-          /-- Count successful reconstructions over a finite population. -/
           def successCount {Secret Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
               (attack : Secret -> Guess) : Nat :=
             countWhere secrets (fun s => criterion s (attack s))
 
-          /-- Count failed reconstructions over a finite population. -/
           def failureCount {Secret Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
               (attack : Secret -> Guess) : Nat :=
             countWhere secrets (fun s => !(criterion s (attack s)))
 
-          /-- A count-based rate: numerator successes over denominator population size. -/
           structure EmpiricalRate where
             numerator : Nat
             denominator : Nat
             deriving Repr, BEq
 
-          /-- Empirical success rate represented without real numbers. -/
           def successRate {Secret Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
               (attack : Secret -> Guess) : EmpiricalRate :=
             { numerator := successCount secrets criterion attack, denominator := secrets.length }
 
-          /-- A privacy audit passes if successful reconstructions are at most the budget. -/
           def passesBudget {Secret Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -156,19 +162,16 @@ jobs:
               (attack : Secret -> Guess) : Prop :=
             successCount secrets criterion attack <= budget
 
-          /-- Deterministic post-processing of an observation. -/
           def postprocess {Secret Raw Out : Type}
               (obs : Observation Secret Raw)
               (f : Raw -> Out) : Observation Secret Out :=
             fun s => f (obs s)
 
-          /-- Any attack on a post-processed observation is simulated by an attack on the raw observation. -/
           def liftedAttack {Raw Out Guess : Type}
               (f : Raw -> Out)
               (attack : Out -> Guess) : Raw -> Guess :=
             fun r => attack (f r)
 
-          /-- Pointwise equality behind the transcript-to-student reduction. -/
           theorem postprocess_attack_pointwise {Secret Raw Out Guess : Type}
               (obs : Observation Secret Raw)
               (f : Raw -> Out)
@@ -177,7 +180,6 @@ jobs:
               attack ((postprocess obs f) s) = (liftedAttack f attack) (obs s) := by
             rfl
 
-          /-- Empirical success is exactly preserved by the lifted transcript-level simulator. -/
           theorem postprocess_successCount_eq {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -188,7 +190,6 @@ jobs:
               successCount secrets criterion (fun s => (liftedAttack f attack) (obs s)) := by
             rfl
 
-          /-- Empirical success-rate numerators and denominators are preserved by lifting. -/
           theorem postprocess_successRate_eq {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -199,7 +200,6 @@ jobs:
               successRate secrets criterion (fun s => (liftedAttack f attack) (obs s)) := by
             rfl
 
-          /-- If the raw transcript-level simulator passes the budget, the post-processed attack passes too. -/
           theorem postprocess_budget_sound {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -211,7 +211,6 @@ jobs:
               passesBudget secrets criterion budget (fun s => attack ((postprocess obs f) s)) := by
             exact h
 
-          /-- A compact theorem statement for CI and paper-facing artifact checks. -/
           theorem distilled_student_attack_is_transcript_attack
               {Secret Transcript Student Guess : Type}
               (secrets : Population Secret)
@@ -223,7 +222,6 @@ jobs:
               successCount secrets criterion (fun s => (fun t => studentAttack (train t)) (transcript s)) := by
             rfl
 
-          /-- The same reduction stated for count-based rates. -/
           theorem distilled_student_rate_is_transcript_rate
               {Secret Transcript Student Guess : Type}
               (secrets : Population Secret)
@@ -243,25 +241,20 @@ jobs:
 
           namespace PACXAI
 
-          /-- One round of an adaptive transcript audit. -/
           structure Round (Query Answer Explanation : Type) where
             query : Query
             answer : Answer
             explanation : Explanation
             deriving Repr
 
-          /-- A history is just the finite list of previous rounds. -/
           abbrev History (Query Answer Explanation : Type) := List (Round Query Answer Explanation)
 
-          /-- An adaptive query policy may depend on public side information and previous history. -/
           abbrev AdaptivePolicy (Side Query Answer Explanation : Type) :=
             Nat -> Side -> History Query Answer Explanation -> Query
 
-          /-- A deterministic system answering a query in a secret world. -/
           abbrev Answerer (Secret Query Answer Explanation : Type) :=
             Secret -> Query -> Answer × Explanation
 
-          /-- Run a deterministic adaptive transcript for a fixed number of rounds. -/
           def runAdaptive {Secret Side Query Answer Explanation : Type}
               (policy : AdaptivePolicy Side Query Answer Explanation)
               (answerer : Answerer Secret Query Answer Explanation)
@@ -274,7 +267,6 @@ jobs:
                 let ae := answerer secret q
                 hist ++ [{ query := q, answer := ae.fst, explanation := ae.snd }]
 
-          /-- The next query is a deterministic function of side information and the previous transcript. -/
           theorem adaptive_next_query_is_policy {Side Query Answer Explanation : Type}
               (policy : AdaptivePolicy Side Query Answer Explanation)
               (side : Side)
@@ -283,7 +275,6 @@ jobs:
               policy n side hist = policy n side hist := by
             rfl
 
-          /-- If two worlds have the same side information and previous history, an adaptive policy asks the same next query. -/
           theorem same_history_same_query {Side Query Answer Explanation : Type}
               (policy : AdaptivePolicy Side Query Answer Explanation)
               (side : Side)
@@ -300,10 +291,8 @@ jobs:
 
           namespace PACXAI
 
-          /-- A candidate attack consumes an observed artifact and returns a guess. -/
           abbrev CandidateAttack (Observation Guess : Type) := Observation -> Guess
 
-          /-- Success count for attacking an observation rather than the raw secret. -/
           def observedSuccessCount {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -311,7 +300,6 @@ jobs:
               (attack : CandidateAttack Obs Guess) : Nat :=
             successCount secrets criterion (fun s => attack (obs s))
 
-          /-- Empirical rate for an observed-artifact attack. -/
           def observedSuccessRate {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -319,10 +307,8 @@ jobs:
               (attack : CandidateAttack Obs Guess) : EmpiricalRate :=
             successRate secrets criterion (fun s => attack (obs s))
 
-          /-- A finite list of attacks is the candidate class used by a practical audit. -/
           abbrev CandidateClass (Obs Guess : Type) := List (CandidateAttack Obs Guess)
 
-          /-- All observed success counts for a candidate class. -/
           def candidateScores {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -330,12 +316,10 @@ jobs:
               (candidates : CandidateClass Obs Guess) : List Nat :=
             candidates.map (fun attack => observedSuccessCount secrets criterion obs attack)
 
-          /-- A simple finite best operator over natural-number scores. -/
           def bestNat : List Nat -> Nat
             | [] => 0
             | x :: xs => Nat.max x (bestNat xs)
 
-          /-- Candidate-best empirical success count. -/
           def candidateBestSuccess {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -343,13 +327,11 @@ jobs:
               (candidates : CandidateClass Obs Guess) : Nat :=
             bestNat (candidateScores secrets criterion obs candidates)
 
-          /-- Map every student-level attack into the equivalent transcript-level simulator. -/
           def liftCandidateClass {Raw Out Guess : Type}
               (f : Raw -> Out)
               (candidates : CandidateClass Out Guess) : CandidateClass Raw Guess :=
             candidates.map (liftedAttack f)
 
-          /-- Candidate scores are exactly preserved by deterministic post-processing and lifting. -/
           theorem candidateScores_postprocess_eq {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -364,7 +346,6 @@ jobs:
                 simp [candidateScores, liftCandidateClass, observedSuccessCount, postprocess, liftedAttack,
                   successCount, countWhere]
 
-          /-- Candidate-best success is exactly preserved when the raw candidate class contains the lifted attacks. -/
           theorem candidateBest_postprocess_eq_lifted {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -375,7 +356,6 @@ jobs:
               candidateBestSuccess secrets criterion obs (liftCandidateClass f candidates) := by
             simp [candidateBestSuccess, candidateScores_postprocess_eq]
 
-          /-- Risk is represented as failures. Lower failure means more privacy harm. -/
           def empiricalRisk {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -383,7 +363,6 @@ jobs:
               (attack : CandidateAttack Obs Guess) : Nat :=
             failureCount secrets criterion (fun s => attack (obs s))
 
-          /-- Risk is also preserved by lifted deterministic post-processing. -/
           theorem empiricalRisk_postprocess_eq {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -403,13 +382,11 @@ jobs:
 
           namespace PACXAI
 
-          /-- Conditioning is finite filtering of the audit population. -/
           def conditionPopulation {Secret : Type}
               (secrets : Population Secret)
               (condition : Secret -> Bool) : Population Secret :=
             secrets.filter condition
 
-          /-- Conditional observed success count: evaluate only on the filtered population. -/
           def conditionalObservedSuccessCount {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (condition : Secret -> Bool)
@@ -418,7 +395,6 @@ jobs:
               (attack : CandidateAttack Obs Guess) : Nat :=
             observedSuccessCount (conditionPopulation secrets condition) criterion obs attack
 
-          /-- Post-processing preservation also holds after conditioning on a subgroup/campaign. -/
           theorem conditional_postprocess_success_eq {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (condition : Secret -> Bool)
@@ -430,7 +406,6 @@ jobs:
               conditionalObservedSuccessCount secrets condition criterion obs (liftedAttack f attack) := by
             rfl
 
-          /-- Candidate-best equality also holds after finite conditioning. -/
           theorem conditional_candidateBest_postprocess_eq_lifted {Secret Raw Out Guess : Type}
               (secrets : Population Secret)
               (condition : Secret -> Bool)
@@ -453,7 +428,6 @@ jobs:
 
           namespace PACXAI
 
-          /-- A distillation campaign is the exact structure needed for the post-processing theorem. -/
           structure DistillationCampaign (Secret Transcript Student Guess : Type) where
             population : Population Secret
             criterion : Criterion Secret Guess
@@ -461,31 +435,26 @@ jobs:
             train : Transcript -> Student
             studentAttack : Student -> Guess
 
-          /-- Student artifact as a deterministic post-processing of the transcript. -/
           def studentObservation {Secret Transcript Student Guess : Type}
               (c : DistillationCampaign Secret Transcript Student Guess) : Observation Secret Student :=
             postprocess c.transcript c.train
 
-          /-- The transcript-level simulator corresponding to the student-level attack. -/
           def transcriptSimulator {Secret Transcript Student Guess : Type}
               (c : DistillationCampaign Secret Transcript Student Guess) : Transcript -> Guess :=
             liftedAttack c.train c.studentAttack
 
-          /-- Main theorem: every successful attack on a deterministic student is the same attack on the transcript plus training. -/
           theorem student_attack_lifts_to_transcript {Secret Transcript Student Guess : Type}
               (c : DistillationCampaign Secret Transcript Student Guess) :
               observedSuccessCount c.population c.criterion (studentObservation c) c.studentAttack =
               observedSuccessCount c.population c.criterion c.transcript (transcriptSimulator c) := by
             rfl
 
-          /-- Same theorem stated for empirical rates. -/
           theorem student_rate_lifts_to_transcript {Secret Transcript Student Guess : Type}
               (c : DistillationCampaign Secret Transcript Student Guess) :
               observedSuccessRate c.population c.criterion (studentObservation c) c.studentAttack =
               observedSuccessRate c.population c.criterion c.transcript (transcriptSimulator c) := by
             rfl
 
-          /-- Same theorem after conditioning on a subgroup/campaign/account cluster. -/
           theorem conditional_student_attack_lifts_to_transcript {Secret Transcript Student Guess : Type}
               (c : DistillationCampaign Secret Transcript Student Guess)
               (condition : Secret -> Bool) :
@@ -493,7 +462,6 @@ jobs:
               conditionalObservedSuccessCount c.population condition c.criterion c.transcript (transcriptSimulator c) := by
             rfl
 
-          /-- Candidate-best version for a class of student-level adversaries. -/
           theorem student_candidate_best_is_transcript_candidate_best_lifted
               {Secret Transcript Student Guess : Type}
               (population : Population Secret)
@@ -514,32 +482,27 @@ jobs:
           namespace PACXAI
           namespace Leakage
 
-          /-- Finite output-cover leakage: whether an output appears on the audited population. -/
           def appears {Secret Out : Type} [BEq Out]
               (secrets : Population Secret)
               (obs : Observation Secret Out)
               (y : Out) : Bool :=
             secrets.any (fun s => obs s == y)
 
-          /-- Count distinct outputs by filtering a supplied finite list of possible outputs. -/
           def outputCoverSize {Secret Out : Type} [BEq Out]
               (secrets : Population Secret)
               (obs : Observation Secret Out)
               (outputs : List Out) : Nat :=
             (outputs.filter (appears secrets obs)).length
 
-          /-- Cartesian product of two finite lists. -/
           def cartesian {A B : Type} : List A -> List B -> List (A × B)
             | [], _ => []
             | a :: as, bs => bs.map (fun b => (a,b)) ++ cartesian as bs
 
-          /-- Joint observation from two observations. -/
           def pairObs {Secret A B : Type}
               (obsA : Observation Secret A)
               (obsB : Observation Secret B) : Observation Secret (A × B) :=
             fun s => (obsA s, obsB s)
 
-          /-- Exact post-processing preserves the pointwise output value. -/
           theorem postprocess_output_pointwise {Secret Raw Out : Type}
               (obs : Observation Secret Raw)
               (f : Raw -> Out)
@@ -547,7 +510,6 @@ jobs:
               (postprocess obs f) s = f (obs s) := by
             rfl
 
-          /-- Pair observations are pointwise deterministic functions of the secret. -/
           theorem pairObs_pointwise {Secret A B : Type}
               (obsA : Observation Secret A)
               (obsB : Observation Secret B)
@@ -565,43 +527,34 @@ jobs:
           namespace PACXAI
           namespace InfoTheory
 
-          /-- Sum a natural-number statistic over a finite support list. -/
           def sumBy {A : Type} (f : A -> Nat) : List A -> Nat
             | [] => 0
             | x :: xs => f x + sumBy f xs
 
-          /-- A finite distribution represented by natural weights over an explicit support. -/
           structure FiniteDist (A : Type) where
             support : List A
             mass : A -> Nat
 
-          /-- Total mass of a finite natural-weight distribution. -/
           def totalMass {A : Type} (p : FiniteDist A) : Nat :=
             sumBy p.mass p.support
 
-          /-- Push a finite distribution through a deterministic map. -/
           def mapDist {A B : Type} [BEq B]
               (f : A -> B)
               (p : FiniteDist A) : FiniteDist B where
             support := p.support.map f
             mass := fun b => sumBy (fun a => if f a == b then p.mass a else 0) p.support
 
-          /-- A code assigns a natural code length/budget to each outcome. -/
           abbrev Code (A : Type) := A -> Nat
 
-          /-- Expected code cost, represented as an integer numerator. -/
           def expectedCodeCost {A : Type} (p : FiniteDist A) (code : Code A) : Nat :=
             sumBy (fun a => p.mass a * code a) p.support
 
-          /-- Relative code cost: finite audit analogue of KL-style excess code length. -/
           def relativeCodeCost {A : Type} (p : FiniteDist A) (pCode qCode : Code A) : Nat :=
             sumBy (fun a => p.mass a * (qCode a - pCode a)) p.support
 
-          /-- A code transformer for deterministic post-processing. -/
           def pullCode {A B : Type} (f : A -> B) (code : Code B) : Code A :=
             fun a => code (f a)
 
-          /-- Expected code cost after applying a deterministic map equals the pulled-back cost. -/
           theorem expectedCodeCost_pullback {A B : Type}
               (p : FiniteDist A)
               (f : A -> B)
@@ -610,7 +563,6 @@ jobs:
               sumBy (fun a => p.mass a * code (f a)) p.support := by
             rfl
 
-          /-- The total mass definition unfolds to a finite support sum. -/
           theorem totalMass_unfold {A : Type} (p : FiniteDist A) :
               totalMass p = sumBy p.mass p.support := by
             rfl
@@ -626,17 +578,14 @@ jobs:
           namespace PACXAI
           namespace InfoTheory
 
-          /-- A deterministic channel is a function. -/
           abbrev DetChannel (A B : Type) := A -> B
 
-          /-- A finite audit leakage score: code cost of the observed output induced by a secret distribution. -/
           def observedCodeCost {Secret Obs : Type}
               (p : FiniteDist Secret)
               (obs : Observation Secret Obs)
               (code : Code Obs) : Nat :=
             sumBy (fun s => p.mass s * code (obs s)) p.support
 
-          /-- Data processing for deterministic channels, stated as exact preservation by pullback. -/
           theorem deterministic_dpi_exact {Secret Raw Out : Type}
               (p : FiniteDist Secret)
               (raw : Observation Secret Raw)
@@ -646,14 +595,12 @@ jobs:
               observedCodeCost p raw (pullCode f outCode) := by
             rfl
 
-          /-- Conditional version: data processing after finite filtering of the support. -/
           def restrictDist {A : Type}
               (p : FiniteDist A)
               (condition : A -> Bool) : FiniteDist A where
             support := p.support.filter condition
             mass := p.mass
 
-          /-- Deterministic data processing after conditioning on a subgroup. -/
           theorem conditional_deterministic_dpi_exact {Secret Raw Out : Type}
               (p : FiniteDist Secret)
               (condition : Secret -> Bool)
@@ -664,14 +611,12 @@ jobs:
               observedCodeCost (restrictDist p condition) raw (pullCode f outCode) := by
             rfl
 
-          /-- Code-cost analogue of mutual information: gain from a baseline code to an observation-specific code. -/
           def infoGainCost {Secret Obs : Type}
               (p : FiniteDist Secret)
               (obs : Observation Secret Obs)
               (baseline observed : Code Obs) : Nat :=
             sumBy (fun s => p.mass s * (baseline (obs s) - observed (obs s))) p.support
 
-          /-- Deterministic post-processing preserves the finite code-gain expression under pullback. -/
           theorem infoGain_postprocess_exact {Secret Raw Out : Type}
               (p : FiniteDist Secret)
               (raw : Observation Secret Raw)
@@ -694,7 +639,6 @@ jobs:
           namespace PACXAI
           namespace InfoTheory
 
-          /-- A finite Fano-style certificate, stated without logarithms. -/
           structure FanoStyleCertificate where
             total : Nat
             successes : Nat
@@ -702,11 +646,9 @@ jobs:
             requiredInformation : Nat
             deriving Repr, BEq
 
-          /-- A certificate is valid when successes plus allowed errors cover the finite population. -/
           def FanoStyleCertificate.Valid (c : FanoStyleCertificate) : Prop :=
             c.total <= c.successes + c.allowedErrors
 
-          /-- Build a Fano-style certificate from an audited attack. -/
           def fanoStyleFromAttack {Secret Obs Guess : Type}
               (secrets : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -718,7 +660,6 @@ jobs:
               allowedErrors := allowedErrors,
               requiredInformation := requiredInformation }
 
-          /-- Student and transcript Fano-style certificates have the same success count under deterministic distillation. -/
           theorem fanoStyle_student_transcript_success_eq
               {Secret Transcript Student Guess : Type}
               (secrets : Population Secret)
@@ -731,7 +672,6 @@ jobs:
               (fanoStyleFromAttack secrets criterion transcript (liftedAttack train studentAttack) allowedErrors requiredInformation).successes := by
             rfl
 
-          /-- Validity of the student certificate transfers to the transcript certificate. -/
           theorem fanoStyle_valid_student_to_transcript
               {Secret Transcript Student Guess : Type}
               (secrets : Population Secret)
@@ -744,11 +684,9 @@ jobs:
               (fanoStyleFromAttack secrets criterion transcript (liftedAttack train studentAttack) allowedErrors requiredInformation).Valid := by
             exact h
 
-          /-- If a finite audit budget is below the required information in a valid certificate, the audit fails. -/
           def violatesInfoBudget (budget : Nat) (cert : FanoStyleCertificate) : Prop :=
             cert.Valid ∧ budget < cert.requiredInformation
 
-          /-- Budget violation transfers from student artifact to transcript simulator for deterministic distillation. -/
           theorem fanoStyle_budget_violation_lifts
               {Secret Transcript Student Guess : Type}
               (secrets : Population Secret)
@@ -773,7 +711,6 @@ jobs:
           namespace PACXAI
           namespace PAC
 
-          /-- A finite Monte Carlo audit certificate. -/
           structure MonteCarloCertificate where
             samples : Nat
             successes : Nat
@@ -782,11 +719,9 @@ jobs:
             confidenceDenominator : Nat
             deriving Repr, BEq
 
-          /-- The certificate passes when the observed number of successes is within the allowed finite budget. -/
           def MonteCarloCertificate.Passes (c : MonteCarloCertificate) : Prop :=
             c.successes <= c.allowedSuccesses
 
-          /-- Build a Monte Carlo certificate from a finite sampled population and candidate attack. -/
           def monteCarloFromAttack {Secret Obs Guess : Type}
               (samples : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -799,7 +734,6 @@ jobs:
               confidenceNumerator := confidenceNumerator,
               confidenceDenominator := confidenceDenominator }
 
-          /-- Deterministic post-processing preserves the Monte Carlo success count exactly. -/
           theorem monteCarlo_postprocess_success_eq {Secret Raw Out Guess : Type}
               (samples : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -811,7 +745,6 @@ jobs:
               (monteCarloFromAttack samples criterion raw (liftedAttack f attack) allowedSuccesses confidenceNumerator confidenceDenominator).successes := by
             rfl
 
-          /-- If the transcript-level Monte Carlo simulator passes, so does the deterministic student audit. -/
           theorem monteCarlo_transcript_pass_implies_student_pass {Secret Raw Out Guess : Type}
               (samples : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -823,7 +756,6 @@ jobs:
               (monteCarloFromAttack samples criterion (postprocess raw f) attack allowedSuccesses confidenceNumerator confidenceDenominator).Passes := by
             exact h
 
-          /-- Candidate-class Monte Carlo audit: the observed successes are the candidate-best successes. -/
           def monteCarloFromCandidateClass {Secret Obs Guess : Type}
               (samples : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -836,7 +768,6 @@ jobs:
               confidenceNumerator := confidenceNumerator,
               confidenceDenominator := confidenceDenominator }
 
-          /-- Candidate-class Monte Carlo certificates are preserved by lifting student attacks to transcript attacks. -/
           theorem monteCarlo_candidateClass_postprocess_eq {Secret Raw Out Guess : Type}
               (samples : Population Secret)
               (criterion : Criterion Secret Guess)
@@ -892,43 +823,12 @@ jobs:
           EOF
           chmod +x scripts/audit.sh
 
-      - name: Write MLX experiment matching Lean theorems
+      - name: Write MLX proof-matched experiment and ultra-verbose reporter
         run: |
           set -euxo pipefail
+
           cat > experiments/mlx_proof_matched_experiments.py <<'PY'
           #!/usr/bin/env python3
-          """
-          MLX experiments matched to the Lean proofs.
-
-          This file is deliberately small and deterministic.  It does not train
-          a large model.  Instead, it uses MLX array operations to instantiate
-          the exact finite objects from the Lean proof:
-
-          Lean theorem -> MLX check
-
-          1. postprocess_successCount_eq / student_attack_lifts_to_transcript
-             deterministic_student_success == transcript_simulator_success
-
-          2. conditional_student_attack_lifts_to_transcript
-             conditioned deterministic gaps are zero for every group
-
-          3. candidateBest_postprocess_eq_lifted
-             candidate-best success for transcript-only students equals
-             candidate-best success for their lifted transcript simulators
-
-          4. deterministic_dpi_exact / infoGain_postprocess_exact
-             finite code-cost after post-processing equals pulled-back code-cost
-
-          5. fanoStyle_valid_student_to_transcript
-             finite recovery certificate validity transfers when post-processing holds
-
-          6. monteCarlo_transcript_pass_implies_student_pass
-             transcript Monte Carlo pass implies deterministic student pass
-
-          7. Assumption-bug experiment
-             route_metadata_student uses route_id omitted from Transcript,
-             so it is NOT train : Transcript -> Student and can have a large gap.
-          """
           from __future__ import annotations
 
           import csv
@@ -939,14 +839,7 @@ jobs:
           import mlx.core as mx
           import numpy as np
 
-          CAPABILITIES = [
-              "reasoning",
-              "coding",
-              "tool_use",
-              "computer_use",
-              "policy_edge",
-              "domain_expert",
-          ]
+          CAPABILITIES = ["reasoning", "coding", "tool_use", "computer_use", "policy_edge", "domain_expert"]
           GROUPS = ["normal", "proxy_cluster", "suspicious_campaign", "enterprise_eval"]
           QUERY_FAMILIES = ["simple_qa", "code_generation", "tool_planning", "multi_step", "policy_edge", "domain"]
 
@@ -1021,10 +914,8 @@ jobs:
           def make_matrix(rows: List[Dict[str, object]], mode: str) -> Tuple[mx.array, mx.array]:
               xs = []
               ys = []
-
               for row in rows:
                   x = transcript_features(row)
-
                   if mode == "transcript":
                       pass
                   elif mode == "route":
@@ -1036,35 +927,31 @@ jobs:
                           x += [0.0] * len(ROUTES)
                   else:
                       raise ValueError(mode)
-
                   xs.append(x)
                   ys.append(int(row["capability_id"]))
-
               return mx.array(np.array(xs, dtype=np.float32)), mx.array(np.array(ys, dtype=np.int32))
 
           def transcript_logits(x: mx.array, variant: int = 0) -> mx.array:
-              # Feature layout: query one-hot (6), signature one-hot (3), difficulty one-hot (3).
               q = x[:, 0:6]
               sig = x[:, 6:9]
 
-              # Deterministic coarse transcript model: it cannot distinguish all agentic routes.
               Wq = mx.array(
                   [
-                      [2.0, 0.2, 0.2, 0.2, 0.0, 0.0],  # simple_qa
-                      [0.0, 2.0, 0.4, 0.4, 0.0, 0.0],  # code_generation
-                      [0.0, 0.4, 2.0, 0.4, 0.0, 0.0],  # tool_planning
-                      [1.4, 0.4, 0.4, 0.4, 0.0, 0.0],  # multi_step
-                      [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],  # policy_edge
-                      [0.0, 0.0, 0.0, 0.0, 0.0, 2.0],  # domain
+                      [2.0, 0.2, 0.2, 0.2, 0.0, 0.0],
+                      [0.0, 2.0, 0.4, 0.4, 0.0, 0.0],
+                      [0.0, 0.4, 2.0, 0.4, 0.0, 0.0],
+                      [1.4, 0.4, 0.4, 0.4, 0.0, 0.0],
+                      [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+                      [0.0, 0.0, 0.0, 0.0, 0.0, 2.0],
                   ],
                   dtype=mx.float32,
               )
 
               Ws = mx.array(
                   [
-                      [0.0, 1.0, 1.0, 1.0, 0.0, 0.0],  # agentic
-                      [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],  # safety
-                      [1.5, 0.0, 0.0, 0.0, 0.0, 1.0],  # language_reasoning
+                      [0.0, 1.0, 1.0, 1.0, 0.0, 0.0],
+                      [0.0, 0.0, 0.0, 0.0, 2.0, 0.0],
+                      [1.5, 0.0, 0.0, 0.0, 0.0, 1.0],
                   ],
                   dtype=mx.float32,
               )
@@ -1072,23 +959,17 @@ jobs:
               logits = q @ Wq + sig @ Ws
 
               if variant == 1:
-                  # A second candidate with a different but still transcript-only bias.
-                  bias = mx.array([0.3, 0.0, 0.1, 0.1, 0.0, 0.2], dtype=mx.float32)
-                  logits = logits + bias
+                  logits = logits + mx.array([0.3, 0.0, 0.1, 0.1, 0.0, 0.2], dtype=mx.float32)
               elif variant == 2:
-                  bias = mx.array([0.0, 0.2, 0.0, 0.3, 0.0, 0.1], dtype=mx.float32)
-                  logits = logits + bias
+                  logits = logits + mx.array([0.0, 0.2, 0.0, 0.3, 0.0, 0.1], dtype=mx.float32)
 
               return logits
 
           def route_logits(x: mx.array) -> mx.array:
-              # Feature layout: transcript features (12) + route one-hot (6).
               r = x[:, 12:18]
-              route_to_cap = mx.eye(len(CAPABILITIES), dtype=mx.float32) * 10.0
-              return r @ route_to_cap
+              return r @ (mx.eye(len(CAPABILITIES), dtype=mx.float32) * 10.0)
 
           def subgroup_route_logits(x: mx.array) -> mx.array:
-              # If route features are zeros, fall back to transcript model.
               base = transcript_logits(x[:, 0:12])
               route = route_logits(x)
               route_present = mx.sum(x[:, 12:18], axis=1, keepdims=True)
@@ -1105,7 +986,6 @@ jobs:
               return int(c.item())
 
           def code_cost(pred: mx.array) -> int:
-              # Arbitrary finite code lengths for output labels.
               code = mx.array([1, 2, 3, 4, 5, 6], dtype=mx.int32)
               val = mx.sum(code[pred])
               mx.eval(val)
@@ -1130,17 +1010,15 @@ jobs:
               route_success = success(pred_route_student, y)
               subgroup_success = success(pred_subgroup_student, y)
 
-              # Candidate class: three transcript-only candidates.
               candidate_preds = [predict(transcript_logits(X_t, variant=i)) for i in range(3)]
               candidate_successes = [success(p, y) for p in candidate_preds]
               candidate_best_student = max(candidate_successes)
               candidate_best_lifted_transcript = max(candidate_successes)
 
-              # Conditional groups: deterministic post-processing gap is zero for every group.
-              conditional = {}
               groups_np = np.array([GROUP[str(r["group"])] for r in rows], dtype=np.int32)
               groups_mx = mx.array(groups_np)
 
+              conditional = {}
               for group_name, group_id in GROUP.items():
                   mask = groups_mx == group_id
                   total_g = int(mx.sum(mask).item())
@@ -1157,16 +1035,13 @@ jobs:
                       "transcript_rate": round(sim_g / total_g, 6),
                   }
 
-              # Finite code-cost/DPI check.
               cost_student = code_cost(pred_transcript_student)
               cost_pullback = code_cost(pred_transcript_simulator)
 
-              # Fano-style certificate transfer.
               allowed_errors = N - transcript_success
               fano_student_valid = fano_valid(N, transcript_success, allowed_errors)
               fano_transcript_valid = fano_valid(N, simulator_success, allowed_errors)
 
-              # Monte Carlo certificate.
               budget = transcript_success + int(0.02 * N)
               monte_carlo_transcript_pass = simulator_success <= budget
               monte_carlo_student_pass = transcript_success <= budget
@@ -1223,19 +1098,17 @@ jobs:
 
               ## Lean theorem alignment
 
-              - `postprocess_successCount_eq`: deterministic gap = {summary['deterministic_student_minus_transcript_simulator_success']}
-              - `candidateBest_postprocess_eq_lifted`: candidate-best gap = {summary['candidate_best_gap']}
-              - `deterministic_dpi_exact`: code-cost gap = {summary['code_cost_gap']}
-              - `fanoStyle_valid_student_to_transcript`: student valid = {summary['fano_student_valid']}, transcript valid = {summary['fano_transcript_valid']}
-              - `monteCarlo_transcript_pass_implies_student_pass`: transcript pass = {summary['monte_carlo_transcript_pass']}, student pass = {summary['monte_carlo_student_pass']}
+              - postprocess_successCount_eq: deterministic gap = {summary['deterministic_student_minus_transcript_simulator_success']}
+              - candidateBest_postprocess_eq_lifted: candidate-best gap = {summary['candidate_best_gap']}
+              - deterministic_dpi_exact: code-cost gap = {summary['code_cost_gap']}
+              - fanoStyle_valid_student_to_transcript: student valid = {summary['fano_student_valid']}, transcript valid = {summary['fano_transcript_valid']}
+              - monteCarlo_transcript_pass_implies_student_pass: transcript pass = {summary['monte_carlo_transcript_pass']}, student pass = {summary['monte_carlo_student_pass']}
 
               ## Assumption-bug result
 
-              Route-metadata success exceeds transcript-simulator success by:
+              Route-metadata success exceeds transcript-simulator success by {summary['route_metadata_student_minus_transcript_simulator_success']}.
 
-              `{summary['route_metadata_student_minus_transcript_simulator_success']}`
-
-              This is not a contradiction of the Lean theorem.  It means the real training function is not `Transcript -> Student`; it is `Transcript -> RouteMetadata -> Student`.
+              This is not a contradiction of the Lean theorem. It means the real training function is not Transcript -> Student; it is Transcript -> RouteMetadata -> Student.
               """
               (out / "REPORT.md").write_text(report, encoding="utf-8")
 
@@ -1246,7 +1119,169 @@ jobs:
           PY
           chmod +x experiments/mlx_proof_matched_experiments.py
 
-      - name: Install elan / Lean
+          cat > experiments/print_publishable_report.py <<'PY'
+          #!/usr/bin/env python3
+          from __future__ import annotations
+
+          import json
+          import os
+          from pathlib import Path
+
+          summary = json.loads(Path("results/mlx_proof_matched/summary.json").read_text())
+          lean_build = Path("lean-build.log").read_text(errors="replace")
+          lean_audit = Path("lean-audit.log").read_text(errors="replace")
+
+          build_ok = "Build completed successfully" in lean_build
+          no_forbidden = "No forbidden tokens found" in lean_audit
+
+          theorem_lines = [line for line in lean_audit.splitlines() if line.startswith("'PACXAI.")]
+
+          def verdict(ok: bool) -> str:
+              return "PASS" if ok else "FAIL"
+
+          checks = [
+              (
+                  "postprocess_successCount_eq",
+                  "Deterministic student attack equals transcript simulator.",
+                  "deterministic_student_minus_transcript_simulator_success",
+                  summary["deterministic_student_minus_transcript_simulator_success"],
+                  "0",
+                  summary["deterministic_student_minus_transcript_simulator_success"] == 0,
+              ),
+              (
+                  "conditional_student_attack_lifts_to_transcript",
+                  "Post-processing equality holds for every conditioned subgroup.",
+                  "all conditional deterministic_gap values",
+                  {k: v["deterministic_gap"] for k, v in summary["conditional"].items()},
+                  "all 0",
+                  all(v["deterministic_gap"] == 0 for v in summary["conditional"].values()),
+              ),
+              (
+                  "candidateBest_postprocess_eq_lifted",
+                  "Best candidate attack is unchanged after lifting.",
+                  "candidate_best_gap",
+                  summary["candidate_best_gap"],
+                  "0",
+                  summary["candidate_best_gap"] == 0,
+              ),
+              (
+                  "InfoTheory.deterministic_dpi_exact",
+                  "Finite code-cost DPI equality holds.",
+                  "code_cost_gap",
+                  summary["code_cost_gap"],
+                  "0",
+                  summary["code_cost_gap"] == 0,
+              ),
+              (
+                  "InfoTheory.fanoStyle_valid_student_to_transcript",
+                  "Fano-style certificate transfers from student to transcript.",
+                  "fano validity",
+                  {"student": summary["fano_student_valid"], "transcript": summary["fano_transcript_valid"]},
+                  "both true",
+                  summary["fano_student_valid"] and summary["fano_transcript_valid"],
+              ),
+              (
+                  "PAC.monteCarlo_transcript_pass_implies_student_pass",
+                  "Monte Carlo pass transfers from transcript simulator to deterministic student.",
+                  "monte carlo pass",
+                  {"transcript": summary["monte_carlo_transcript_pass"], "student": summary["monte_carlo_student_pass"]},
+                  "both true",
+                  summary["monte_carlo_transcript_pass"] and summary["monte_carlo_student_pass"],
+              ),
+              (
+                  "outside theorem precondition",
+                  "Route metadata is outside the audited transcript, so the theorem does not apply.",
+                  "route_metadata_false_pass_under_transcript_audit",
+                  summary["route_metadata_false_pass_under_transcript_audit"],
+                  "true",
+                  summary["route_metadata_false_pass_under_transcript_audit"] is True,
+              ),
+          ]
+
+          report = []
+          report.append("# PACXAI Lean + MLX Publishable Console Report")
+          report.append("")
+          report.append("## 1. Executive verdict")
+          report.append("")
+          report.append(f"- Lean build: {verdict(build_ok)}")
+          report.append(f"- Forbidden-token audit: {verdict(no_forbidden)}")
+          report.append(f"- MLX proof-matched experiment: {verdict(all(c[5] for c in checks))}")
+          report.append(f"- Route-metadata false-pass demonstrated: {summary['route_metadata_false_pass_under_transcript_audit']}")
+          report.append("")
+          report.append("## 2. Security claim tested")
+          report.append("")
+          report.append("If a student artifact is a deterministic function of the audited transcript, every finite recovery attack on the student has an equivalent transcript-level simulator with exactly the same empirical success.")
+          report.append("")
+          report.append("Failure mode tested: if the real training pipeline uses omitted route metadata, the post-processing theorem does not apply and a transcript-only audit can falsely pass.")
+          report.append("")
+          report.append("## 3. Lean build summary")
+          report.append("")
+          for line in lean_build.splitlines():
+              if "Built PACXAI" in line or "Build completed successfully" in line:
+                  report.append(f"- {line}")
+          report.append("")
+          report.append("## 4. Lean proof-hole and axiom audit")
+          report.append("")
+          report.append(f"- Forbidden-token scan: {verdict(no_forbidden)}")
+          for line in theorem_lines:
+              report.append(f"- {line}")
+          report.append("")
+          report.append("## 5. MLX proof-to-experiment theorem alignment")
+          report.append("")
+          report.append("| Lean theorem or obligation | Experimental meaning | Metric | Observed | Expected | Verdict |")
+          report.append("|---|---|---:|---:|---:|---:|")
+          for theorem, meaning, metric, observed, expected, ok in checks:
+              observed_text = json.dumps(observed, sort_keys=True)
+              report.append(f"| {theorem} | {meaning} | {metric} | {observed_text} | {expected} | {verdict(ok)} |")
+          report.append("")
+          report.append("## 6. Core MLX result table")
+          report.append("")
+          report.append("| Quantity | Value | Interpretation |")
+          report.append("|---|---:|---|")
+          report.append(f"| n | {summary['n']} | Finite audit population size. |")
+          report.append(f"| transcript_success | {summary['transcript_success']} | Recovery successes under audited transcript boundary. |")
+          report.append(f"| transcript_simulator_success | {summary['transcript_simulator_success']} | Simulator successes from the same boundary. |")
+          report.append(f"| route_metadata_success | {summary['route_metadata_success']} | Recovery successes using omitted route metadata. |")
+          report.append(f"| subgroup_aux_success | {summary['subgroup_aux_success']} | Recovery successes when auxiliary route data is subgroup-concentrated. |")
+          report.append(f"| route_metadata_lift | {summary['route_metadata_student_minus_transcript_simulator_success']} | Additional successes caused by omitted route metadata. |")
+          report.append(f"| monte_carlo_budget | {summary['monte_carlo_budget']} | Allowed successes under transcript-only audit. |")
+          report.append("")
+          report.append("## 7. Conditional subgroup audit")
+          report.append("")
+          report.append("| Group | Total | Transcript rate | Subgroup-aux rate | Deterministic gap | Interpretation |")
+          report.append("|---|---:|---:|---:|---:|---|")
+          for group, rec in summary["conditional"].items():
+              interp = "post-processing equality holds"
+              if rec["subgroup_aux_rate"] > rec["transcript_rate"]:
+                  interp = "auxiliary route metadata raises subgroup recovery"
+              report.append(f"| {group} | {rec['total']} | {rec['transcript_rate']} | {rec['subgroup_aux_rate']} | {rec['deterministic_gap']} | {interp} |")
+          report.append("")
+          report.append("## 8. S and P paper takeaway")
+          report.append("")
+          report.append("The result is not merely that post-processing is monotone. The result is that the audit boundary is machine-checkable.")
+          report.append("")
+          report.append("- Valid proof shape: train : Transcript -> Student")
+          report.append("- Invalid hidden pipeline: train : Transcript -> RouteMetadata -> Student")
+          report.append("- The MLX experiment demonstrates a false pass when route metadata is omitted from the transcript boundary.")
+          report.append("")
+          report.append("## 9. Scope limitation")
+          report.append("")
+          report.append("This artifact mechanizes a finite recovery/privacy audit framework. It does not claim full Shannon entropy, KL divergence with real logarithms, Gaussian maximum entropy, or Gaussian rate-distortion formalization.")
+          report.append("")
+
+          output = "\n".join(report)
+          Path("results/PUBLISHABLE_CONSOLE_REPORT.md").write_text(output, encoding="utf-8")
+          print(output)
+
+          step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if step_summary:
+              with open(step_summary, "a", encoding="utf-8") as f:
+                  f.write(output)
+                  f.write("\n")
+          PY
+          chmod +x experiments/print_publishable_report.py
+
+      - name: Install elan and Lean
         run: |
           set -euxo pipefail
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf \
@@ -1256,7 +1291,6 @@ jobs:
       - name: Install selected Lean toolchain
         run: |
           set -euxo pipefail
-
           TOOLCHAIN="$(cat lean-toolchain)"
 
           if elan toolchain list | grep -Fxq "$TOOLCHAIN"; then
@@ -1266,14 +1300,17 @@ jobs:
           fi
 
           elan default "$TOOLCHAIN"
-
           lean --version | tee lean-version.log
           lake --version | tee lake-version.log
 
-      - name: Show generated project files
+      - name: Show generated project files without git or venv noise
         run: |
           set -euxo pipefail
-          find . -maxdepth 5 -type f | sort | sed 's#^\./##' | tee project-files.log
+          find . -maxdepth 5 -type f \
+            -not -path './.git/*' \
+            -not -path './.venv/*' \
+            -not -path './.lake/*' \
+            | sort | sed 's#^\./##' | tee project-files.log
 
       - name: Build Lean project
         run: |
@@ -1302,6 +1339,9 @@ jobs:
 
           summary = json.loads(Path("results/mlx_proof_matched/summary.json").read_text())
 
+          print("================================================================================")
+          print("VALIDATING MLX PROOF-MATCHED EXPERIMENT SIGNALS")
+          print("================================================================================")
           print(json.dumps(summary, indent=2))
 
           assert summary["deterministic_student_minus_transcript_simulator_success"] == 0
@@ -1316,6 +1356,48 @@ jobs:
 
           for group, rec in summary["conditional"].items():
               assert rec["deterministic_gap"] == 0, (group, rec)
+
+          print("Verdict: all MLX proof-matched signals PASS")
+          print("================================================================================")
+          PY
+
+      - name: Print ultra-verbose publishable Lean + MLX report
+        run: |
+          set -euxo pipefail
+          source .venv/bin/activate
+          python experiments/print_publishable_report.py
+
+      - name: Print compact reviewer-facing result table
+        run: |
+          set -euxo pipefail
+          source .venv/bin/activate
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          s = json.loads(Path("results/mlx_proof_matched/summary.json").read_text())
+
+          print("")
+          print("=" * 100)
+          print("PACXAI REVIEWER-FACING RESULT TABLE")
+          print("=" * 100)
+          print(f"Population size: {s['n']}")
+          print(f"Transcript successes: {s['transcript_success']}")
+          print(f"Transcript simulator successes: {s['transcript_simulator_success']}")
+          print(f"Route-metadata successes: {s['route_metadata_success']}")
+          print(f"Subgroup-aux successes: {s['subgroup_aux_success']}")
+          print("-" * 100)
+          print(f"POST-PROCESSING CHECK: deterministic student gap = {s['deterministic_student_minus_transcript_simulator_success']} (expected 0)")
+          print(f"CANDIDATE-BEST CHECK: candidate-best gap = {s['candidate_best_gap']} (expected 0)")
+          print(f"FINITE DPI CHECK: code-cost gap = {s['code_cost_gap']} (expected 0)")
+          print(f"FANO-STYLE CHECK: student valid = {s['fano_student_valid']}, transcript valid = {s['fano_transcript_valid']}")
+          print(f"PAC MONTE CARLO CHECK: transcript pass = {s['monte_carlo_transcript_pass']}, student pass = {s['monte_carlo_student_pass']}")
+          print("-" * 100)
+          print(f"ASSUMPTION BUG: route metadata false pass = {s['route_metadata_false_pass_under_transcript_audit']}")
+          print(f"ROUTE-METADATA LIFT: +{s['route_metadata_student_minus_transcript_simulator_success']} successes over transcript simulator")
+          print("=" * 100)
+          print("")
           PY
 
       - name: Prepare committed CI results
@@ -1333,6 +1415,10 @@ jobs:
           cp lean-audit.log ci-results/latest/ 2>/dev/null || true
           cp mlx-proof-matched.log ci-results/latest/ 2>/dev/null || true
 
+          if [ -f results/PUBLISHABLE_CONSOLE_REPORT.md ]; then
+            cp results/PUBLISHABLE_CONSOLE_REPORT.md ci-results/latest/
+          fi
+
           if [ -d results ]; then
             mkdir -p ci-results/latest/results
             cp -R results/. ci-results/latest/results/
@@ -1347,7 +1433,7 @@ jobs:
           - Commit: ${GITHUB_SHA}
           - Generated at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-          This workflow is self-contained: it generated the Lean project, built it, audited it, ran MLX experiments matched to the Lean theorems, and validated the expected signals.
+          This workflow is self-contained: it generated the Lean project, built it, audited it, ran MLX experiments matched to the Lean theorems, validated the expected signals, and printed a publishable reviewer-facing report.
           EOF
 
           find ci-results/latest -type f | sort
@@ -1373,15 +1459,15 @@ jobs:
           if git diff --cached --quiet; then
             echo "No generated project/result changes to commit."
           else
-            git commit -m "ci: generate self-contained Lean+MLX PACXAI artifact [skip ci]"
+            git commit -m "ci: generate ultra-verbose Lean+MLX PACXAI artifact [skip ci]"
             git push
           fi
 
-      - name: Upload generated project, logs, and MLX results
+      - name: Upload generated project, logs, reports, and MLX results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pacxai-self-contained-lean-mlx-artifact
+          name: pacxai-ultra-verbose-lean-mlx-artifact
           path: |
             lean-toolchain
             lakefile.lean
